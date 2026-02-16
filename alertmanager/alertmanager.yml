@@ -1,0 +1,39 @@
+global:
+  resolve_timeout: 5m
+  # Replace with your Slack webhook URL to enable notifications
+  # slack_api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+
+route:
+  group_by: ['alertname', 'severity']
+  group_wait:      30s
+  group_interval:  5m
+  repeat_interval: 4h
+  receiver: 'log-only'
+
+  routes:
+    - match:
+        severity: critical
+      receiver: 'log-only'
+    - match:
+        severity: warning
+      receiver: 'log-only'
+
+receivers:
+  # Default: just log (replace with slack_configs when you have a webhook)
+  - name: 'log-only'
+
+  # Uncomment and configure to send Slack alerts:
+  # - name: 'slack-critical'
+  #   slack_configs:
+  #     - channel: '#alerts-critical'
+  #       send_resolved: true
+  #       color: 'danger'
+  #       title: ':red_circle: CRITICAL: {{ .CommonAnnotations.summary }}'
+  #       text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'instance']
